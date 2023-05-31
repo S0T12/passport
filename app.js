@@ -5,8 +5,11 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+let passport = require('passport');
+let session = require('express-session');
+let SQLiteStore = require('connect-sqlite3')(session);
 var indexRouter = require('./routes/index');
+let autuRouter = require('./routes/auth');
 
 var app = express();
 
@@ -21,9 +24,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: false,
+  store: new SQLiteStore({ db: 'sessions.db', dir: './var/db' })
+}));
+app.use(passport.authenticate('session'));
 app.use('/', indexRouter);
-
+app.use('/', autuRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
